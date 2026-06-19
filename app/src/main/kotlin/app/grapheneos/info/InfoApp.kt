@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.VolunteerActivism
 import androidx.compose.material.icons.outlined.Forum
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.VolunteerActivism
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -31,6 +32,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
@@ -41,18 +43,22 @@ import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.fromHtml
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NamedNavArgument
 import androidx.navigation.NavBackStackEntry
@@ -99,13 +105,14 @@ enum class InfoAppScreens(@StringRes val title: Int) {
     DonateCryptocurrenciesCardano(title = R.string.cardano),
     DonateCryptocurrenciesLitecoin(title = R.string.litecoin),
     DonatePaypal(title = R.string.paypal),
+
     DonateWise(title = R.string.wise),
     DonateBankTransfers(title = R.string.bank_transfers)
 }
 
 val navSuiteItemScreens = arrayOf(
     InfoAppScreens.Releases,
-    InfoAppScreens.Community,
+    //InfoAppScreens.Community,
     InfoAppScreens.Donate
 )
 
@@ -125,10 +132,14 @@ fun InfoApp() {
      * but doesn't change when it changes so the user doesn't get a weird animation
      * every time they navigate through the bottom navigation bar.
      */
-    val startDestination by rememberSaveable { preferencesUiState.startDestination.second }
+    val startDestination = remember(preferencesUiState.startDestination.second) {
+        InfoAppScreens.Releases.name
+    }
 
     val currentScreen =
-        InfoAppScreens.valueOf(backStackEntry?.destination?.route ?: startDestination)
+        InfoAppScreens.entries.find {
+            it.name == (backStackEntry?.destination?.route ?: startDestination)
+        } ?: InfoAppScreens.Releases
 
     val navSuiteItemScreenSelected = navSuiteItemScreens.find {
         currentScreen.name.startsWith(it.name)
@@ -148,16 +159,15 @@ fun InfoApp() {
 
     val topAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
 
-    val localUriHandler = LocalUriHandler.current
-
-    val openUriIllegalArguementExceptionSnackbarError =
-        stringResource(R.string.browser_link_illegal_argument_exception_snackbar_error)
-
     val navigationSuiteType = NavigationSuiteScaffoldDefaults.calculateFromAdaptiveInfo(
         currentWindowAdaptiveInfo()
     )
 
     val layoutDirection = LocalLayoutDirection.current
+
+    val showCommunityDialog = rememberSaveable { mutableStateOf(false) }
+
+    val showReleasesInfoDialog = rememberSaveable { mutableStateOf(false) }
 
     NavigationSuiteScaffold(
         navigationSuiteItems = {
@@ -182,6 +192,11 @@ fun InfoApp() {
                             launchSingleTop = true
                             restoreState = true
                         }
+
+                        if (navSuiteItemScreen == InfoAppScreens.Community) {
+                            showCommunityDialog.value = true
+                        }
+
                         navSuiteItemScreen.let {
                             preferencesViewModel.setPreference(
                                 preferencesUiState.startDestination.first,
@@ -249,15 +264,7 @@ fun InfoApp() {
                         if (navSuiteItemScreenSelected == InfoAppScreens.Releases) {
                             IconButton(
                                 onClick = {
-                                    try {
-                                        localUriHandler.openUri("https://grapheneos.org/releases#about-the-releases")
-                                    } catch (e: IllegalArgumentException) {
-                                        snackbarCoroutine.launch {
-                                            snackbarHostState.showSnackbar(
-                                                openUriIllegalArguementExceptionSnackbarError
-                                            )
-                                        }
-                                    }
+                                    showReleasesInfoDialog.value = true
                                 }
                             ) {
                                 Icon(
@@ -286,8 +293,7 @@ fun InfoApp() {
                         modifier = Modifier
                             .padding(top = innerPadding.calculateTopPadding())
                             .consumeWindowInsets(innerPadding),
-                        entries =
-                            releasesUiState.value.entries.toSortedMap().toList().asReversed(),
+                        entries = releasesUiState.value.entries.toList(),
                         updateChangelog = { useCaches, onFinishedUpdating ->
                             releasesViewModel.updateChangelog(
                                 useCaches = useCaches,
@@ -533,7 +539,59 @@ fun InfoApp() {
             }
         }
     }
+    if (currentScreen == InfoAppScreens.Community && showCommunityDialog.value) {
+        AlertDialog(
+            onDismissRequest = { showCommunityDialog.value = false },
+            title = {
+                Text(
+                    text = stringResource(R.string.community_attention),
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text(
+                    AnnotatedString.fromHtml(
+                        htmlString = stringResource(R.string.community_info),
+                    ),
+                    fontSize = 16.sp
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { showCommunityDialog.value = false }) {
+                    Text(
+                        text = stringResource(R.string.ok),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        )
+    }
+    if (showReleasesInfoDialog.value) {
+        AlertDialog(
+            onDismissRequest = { showReleasesInfoDialog.value = false },
+            text = {
+                Text(
+                    AnnotatedString.fromHtml(
+                        htmlString = stringResource(R.string.release_info),
+                    ),
+                    fontSize = 16.sp
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { showReleasesInfoDialog.value = false }) {
+                    Text(
+                        text = stringResource(R.string.ok),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        )
+    }
 }
+
 
 fun NavGraphBuilder.navigationWithDefaultSlideTransitions(
     startDestination: String,
@@ -580,12 +638,12 @@ fun NavGraphBuilder.composableWithDefaultSlideTransitions(
     navigationSuiteType: NavigationSuiteType,
     arguments: List<NamedNavArgument> = emptyList(),
     deepLinks: List<NavDeepLink> = emptyList(),
-    enterTransition: @JvmSuppressWildcards() (AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition?)? = null,
-    exitTransition: @JvmSuppressWildcards() (AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition?)? = null,
-    popEnterTransition: @JvmSuppressWildcards() (AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition?)? = enterTransition,
-    popExitTransition: @JvmSuppressWildcards() (AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition?)? = exitTransition,
-    sizeTransform: @JvmSuppressWildcards() (AnimatedContentTransitionScope<NavBackStackEntry>.() -> SizeTransform?)? = null,
-    content: @Composable() (AnimatedContentScope.(NavBackStackEntry) -> Unit),
+    enterTransition: @JvmSuppressWildcards (AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition?)? = null,
+    exitTransition: @JvmSuppressWildcards (AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition?)? = null,
+    popEnterTransition: @JvmSuppressWildcards (AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition?)? = enterTransition,
+    popExitTransition: @JvmSuppressWildcards (AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition?)? = exitTransition,
+    sizeTransform: @JvmSuppressWildcards (AnimatedContentTransitionScope<NavBackStackEntry>.() -> SizeTransform?)? = null,
+    content: @Composable (AnimatedContentScope.(NavBackStackEntry) -> Unit),
 ) {
     composable(route.name, arguments, deepLinks, if (enterTransition == null) {
         {
@@ -701,8 +759,8 @@ fun getExitTransition(
 }
 
 fun getStateNavRoute(state: NavBackStackEntry): InfoAppScreens? {
-    state.destination.route?.let { return InfoAppScreens.valueOf(it) }
-    return null
+    val route = state.destination.route ?: return null
+    return InfoAppScreens.entries.find { it.name == route }
 }
 
 private fun isNavAnimationVertical(

@@ -302,7 +302,7 @@ fun BankTransfersScreen(
         }
         item {
             SelectionContainer {
-                Text(AnnotatedString.Companion.fromHtml(stringResource(R.string.interac_e_transfer_info)))
+                Text(AnnotatedString.fromHtml(stringResource(R.string.interac_e_transfer_info)))
             }
         }
     }

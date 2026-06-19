@@ -44,7 +44,7 @@
         question to GrapheneOS.
     </string>
     <string name="navigate_up_button_description">Navigate up</string>
-    <string name="donate_start_info_part_1">GrapheneOS is an open source project supported via donations from
+    <string name="donate_start_info_part_1">MosaicOS is based on GrapheneOS, which is an open source project supported via donations from
         individuals, companies and other organizations.
     </string>
     <string name="donate_start_info_part_2">Donations are used for paying developers, purchasing hardware
@@ -142,6 +142,16 @@
     <string name="browser_link_illegal_argument_exception_snackbar_error">Unable to open link. Make sure a browser is installed and enabled on your device.</string>
     <string name="releases_top_bar_info_button_content_description">Info about the releases</string>
     <string name="releases_see_all_button">See all release notes</string>
+    <string name="community_attention">Attention</string>
+    <string name="community_info"><![CDATA[
+MosaicOS community platforms are under development.<br><br>
+These community links belong to GrapheneOS.<br>Please <b>do not</b> use these to seek help or guidance when using MosaicOS.
+]]></string>
+    <string name="release_info"><![CDATA[
+MosaicOS is built on the secure foundation of GrapheneOS, enriched with features from LineageOS and other community projects, or inspired by them.<br><br>
+Future updates may introduce changes to these features and how they are implemented.
+]]></string>
+    <string name="release_url">https://update.mosaicos.io/releases.atom</string>
     <string name="wise_description_part_1">"If you have a Wise account, you can donate directly via Wise using "</string>
     <string name="wise_description_part_2">our Wise Quick Pay link</string>
     <string name="wise_description_part_3">" rather than using the bank account details. This enables sending donations from anywhere Wise is available. If the currency you're using isn't listed due to not being one of the currencies where we accept local bank transfers, please select CAD or USD so we can avoid another conversion."</string>

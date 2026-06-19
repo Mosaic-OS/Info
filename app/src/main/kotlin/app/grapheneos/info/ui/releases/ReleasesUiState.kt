@@ -1,7 +1,8 @@
 package app.grapheneos.info.ui.releases
 
-import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewmodel.compose.SavedStateHandleSaveableApi
 import androidx.lifecycle.viewmodel.compose.saveable
@@ -11,6 +12,6 @@ class ReleasesUiState(savedStateHandle: SavedStateHandle) {
     var didInitialScroll: Boolean by savedStateHandle.saveable {
         mutableStateOf(false)
     }
-    /** Unsorted release notes, use .toSortedMap().toList().asReversible() to get them in the proper order. */
-    val entries: MutableMap<String, String> = mutableStateMapOf()
+
+    val entries: SnapshotStateList<Pair<String, String>> = mutableStateListOf()
 }

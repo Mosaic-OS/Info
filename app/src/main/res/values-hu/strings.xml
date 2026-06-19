@@ -1,0 +1,130 @@
+<resources>
+    <string name="app_name">Info</string>
+    <string name="releases">Kiadások</string>
+    <string name="community">Közösség</string>
+    <string name="donate">Adományozás</string>
+    <string name="github_sponsors">GitHub Szponzorok </string>
+    <string name="cryptocurrencies">Cryptovaluták</string>
+    <string name="paypal">PayPal</string>
+    <string name="bank_transfers">Banki utalások</string>
+    <string name="bitcoin">Bitcoin</string>
+    <string name="monero">Monero</string>
+    <string name="zcash">Zcash</string>
+    <string name="ethereum">Ethereum</string>
+    <string name="cardano">Cardano</string>
+    <string name="litecoin">Litecoin</string>
+    <string name="local_bank_transfer_to_wise">Helyi banki átutalás a Wise-nak</string>
+    <string name="eu_sepa_eur">EU/SEPA (EUR)</string>
+    <string name="account_holder">Számlatulajdonos</string>
+    <string name="grapheneos_foundation">GrapheneOS Foundation</string>
+    <string name="iban">IBAN</string>
+    <string name="bank_name">Bank neve</string>
+    <string name="wise_and_bank_address">Wise és Bank címe</string>
+    <string name="uk_gbp">UK (GBP)</string>
+    <string name="account_number">Számlaszám</string>
+    <string name="sort_code">Rendezési kód</string>
+    <string name="us_usd">US (USD)</string>
+    <string name="routing_number">Útvonali szám</string>
+    <string name="account_type">Számla típusa</string>
+    <string name="checking">Ellenőrzés</string>
+    <string name="wise_address">Wise cím</string>
+    <string name="bank_address">Bank címe</string>
+    <string name="australia_aud">Ausztrália (AUD)</string>
+    <string name="bsb_code">BSB kód</string>
+    <string name="new_zealand_nzd">Új-Zéland (NZD)</string>
+    <string name="canada_cad">Kanada (CAD)</string>
+    <string name="transit_number">Tranzitszám</string>
+    <string name="institution_number">Intézményszám</string>
+    <string name="hungary_huf">Magyarország (HUF)</string>
+    <string name="turkey_try">Törökország (TRY)</string>
+    <string name="interac_e_transfer">Interac e-Transfer</string>
+    <string name="interac_e_transfer_info">Ha rendelkezik kanadai bankszámlával, kanadai dollár adományokat küldhet a non-profit GrapheneOS alapítványnak
+        az Interac e-Transferen keresztül a <i>contact@grapheneos.org</i> címre. Az e-mail címen engedélyezve van az Interac e-Transfer Autodeposit támogatása,
+        így nincs szükség biztonsági kérdésre. Ha bankja nem támogatja az Autodeposit szolgáltatást, állítsa a biztonsági kérdésre adott választ a GrapheneOS értékre.</string>
+    <string name="navigate_up_button_description">Navigáljon felfelé</string>
+    <string name="donate_start_info_part_1">A MosaicOS a GrapheneOS-en alapszik, amely egy nyílt forráskódú projekt, amit adományokból támogatnak
+        magánszemélyek, cégek és egyéb szervezetek.
+    </string>
+    <string name="donate_start_info_part_2">Az adományokat fejlesztők fizetésére, hardvervásárlásra fordítják.
+        Ezekből fizetik a munkaállomásokat, teszteszközöket, kábelek/táblák hibakeresését stb., az infrastruktúrát, (domain,
+        virtuális/dedikált szerverek) és a jogi díjakat is.
+    </string>
+    <string name="donate_the_way_you_want">Adományozzon úgy, ahogy szeretne</string>
+    <string name="donate_start_info_part_3">A GrapheneOS a következő adományozási módokat kínálja.\nVálassza ki az Ön számára megfelelőt.
+    </string>
+    <string name="hiring_footer_part_1">"Más módon segítene?\nNézze meg a "</string>
+    <string name="hiring_footer_part_2">felvételi oldalunkat</string>
+    <string name="hiring_footer_part_3">.</string>
+    <string name="chat">Chat</string>
+    <string name="community_screen_chat_rooms_description">Csevegőszobáink kapcsolatban vannak a Discord, a Telegram és a Matrix platformok között,
+        így kiválaszthatja az Önnek megfelelőt.</string>
+    <string name="discord">Discord</string>
+    <string name="matrix">Matrix</string>
+    <string name="forum">Fórum</string>
+    <string name="forum_description">Van egy hivatalos fórumunk a hosszabb formátumú bejegyzésekhez, amely nyilvánosan elérhető és könnyebben kereshető.</string>
+    <string name="grapheneos_discussion_forum">GrapheneOS értekezési fórum</string>
+    <string name="social_media">Közösségi média</string>
+    <string name="social_media_accounts_description">A projekt hivatalos közösségi média fiókjai, hivatalos bejelentésekhez.</string>
+    <string name="twitter">X</string>
+    <string name="mastodon">Mastodon</string>
+    <string name="bluesky">Bluesky</string>
+    <string name="github_sponsors_description_part_1">A GrapheneOS rendszeres vagy egyszeri adományozással szponzorálható hitelkártyán keresztül a </string>
+    <string name="github_sponsors_description_part_2">on. Vannak szabványos szintek 5 és 5000 dollár között, vagy adományozhat egyedi összeget.</string>
+    <string name="paypal_info_description_part_1">A PayPal-on keresztül egyszeri, havi vagy éves szinten adományozhat a GrapheneOS alapítvány számára.</string>
+    <string name="paypal_info_description_part_2">Ha lehetséges, használja a saját pénzneméhez tartozó adományozási linket. Ha nem szerepel a listán, kérjük,
+        használja a CAD adományozási linket.</string>
+    <string name="donation_links">Adományozási linkek</string>
+    <string name="canadian_dollar_cad">Kanadai dollár (CAD)</string>
+    <string name="united_states_dollar_usd">Egyesült Államok dollár (USD)</string>
+    <string name="euro_eur">Euró (EUR)</string>
+    <string name="british_pound_gbp">Brit font (GBP)</string>
+    <string name="paypal_fee_description" formatted="false">A PayPal 30 cent alapdíjat és az adomány összegének 2,9%-át számítja fel Kanadán belül.
+        További 0,8%-os díjat számítanak fel az Egyesült Államokból származó adományokért és 1%-ot más országokból.
+        A pénznemek átváltása további 4%-os díjat számít fel a PayPal szokásos 3%-os átváltási díjával szemben.</string>
+    <string name="link_card_item_on_click_label">Link megnyitása</string>
+    <string name="bitcoin_info">Bitcoint adományozhat a non-profit GrapheneOS alapítványnak.</string>
+    <string name="bech32_segwit_qr_code_description">Bitcoin adományozási QR-kód</string>
+    <string name="bech32m_taproot_qr_code_description">Bitcoin Taproot adományozási QR-kód</string>
+    <string name="bip47_payment_code_stealth_address_qr_code_description">Bitcoin BIP47 fizetési kód QR kód</string>
+    <string name="qr_code_on_click_label">QR kód nagyítása</string>
+    <string name="share">Megosztás</string>
+    <string name="ok">OK</string>
+    <string name="image_enlarged">%1$s (nagyítva)</string>
+    <string name="activity_not_found_for_donation_address_snackbar_error">Nem található alkalmazás az adományozási cím megnyitásához!</string>
+    <string name="cardano_info">Cardanot adományozhat a non-profit GrapheneOS alapítványnak.</string>
+    <string name="cardano_qr_code_description">Cardano adományozási QR-kód</string>
+    <string name="cardano_handle_notice">Miénk a <i>$grapheneos</i> handle ezzel a címmel, szóval a handle-nek is küldhet.</string>
+    <string name="cardano_token_donation_notice">Nem token adományokat várunk, csak magát a Cardanót.</string>
+    <string name="etherium_info">Ethereumot adományozhat a non-profit GrapheneOS alapítványnak.</string>
+    <string name="ethereum_qr_code_description">Ethereum adományozási QR-kód</string>
+    <string name="etherium_token_donation_notice">Nem token adományokat várunk, csak magát az Ethereumot.</string>
+    <string name="litecoin_info">Litecoint adományozhat a non-profit GrapheneOS alapítványnak.</string>
+    <string name="litecoin_qr_code_description">Litecoin adományozási QR-kód</string>
+    <string name="monero_info">Monerot adományozhat a non-profit GrapheneOS alapítványnak.</string>
+    <string name="monero_qr_code_description">Monero adományozási QR-kód</string>
+    <string name="zcash_info">Zcasht adományozhat a non-profit GrapheneOS alapítványnak.</string>
+    <string name="zcash_transparent_qr_code_description">Transzparens Zcash adományozási QR-kód</string>
+    <string name="update_changelog_socket_timeout_exception_snackbar_message">Hiba: Socket időtúllépés</string>
+    <string name="update_changelog_io_exception_snackbar_message">Nem sikerült lekérni a legújabb kiadási megjegyzéseket</string>
+    <string name="update_changelog_unknown_service_exception_snackbar_message">Hiba: Ismeretlen szolgáltatás</string>
+    <string name="update_changelog_failed_to_create_httpsurlconnection_snackbar_message">A HttpsURLConnection létrehozása nem sikerült</string>
+    <string name="screen_nav_card_item_on_click_label">Képernyő megnyitása</string>
+    <string name="account_info_item_copy_term">%1$s másolása</string>
+    <string name="browser_link_illegal_argument_exception_snackbar_error">Nem lehet megnyitni a linket. Győződjön meg arról, hogy egy böngésző telepítve és engedélyezve van az eszközén.</string>
+    <string name="releases_top_bar_info_button_content_description">Információk a kiadásokról</string>
+    <string name="releases_see_all_button">Tekintse meg az összes kiadási megjegyzést</string>
+    <string name="community_attention">Figyelem</string>
+    <string name="community_info"><![CDATA[
+A MosaicOS közösségi felületei fejlesztés alatt állnak.<br><br>
+A most megjelent közösségi linkek a GrapheneOS-hez tartoznak.<br>Kérjük, ezeken a linkeken <b>ne</b> kérjen segítséget vagy útmutatást, ha a MosaicOS-t használja.
+]]></string>
+    <string name="release_info"><![CDATA[
+A MosaicOS a biztonságos GrapheneOS-re épül, amit a LineageOS és más közösségek funkcióival, illetve az azok által inspirált megoldásokkal egészítettünk ki.<br><br>
+A jövőben előfordulhat, hogy egyes funkciók vagy megvalósításuk módja megváltozik.
+]]></string>
+    <string name="release_url">https://update.mosaicos.io/releases-hu.atom</string>
+    <string name="wise_description_part_1">Ha van Wise fiókja, közvetlenül a Wise-on keresztül is adományozhat a következő módon:</string>
+    <string name="wise_description_part_2">a Wise Quick Pay linkünk</string>
+    <string name="wise_description_part_3">a bankszámlaadatok használata helyett. Ez lehetővé teszi az adományok küldését bárhonnan, ahol a Wise elérhető. Ha az Ön által használt pénznem nem szerepel a listán, mert nem fogadunk el helyi banki átutalásokat, kérjük, válassza a CAD vagy az USD lehetőséget, hogy elkerülhessük az újabb átváltást.</string>
+    <string name="wise">Wise</string>
+</resources>

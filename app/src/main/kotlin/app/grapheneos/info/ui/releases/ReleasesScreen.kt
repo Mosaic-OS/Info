@@ -111,7 +111,7 @@ fun ReleasesScreen(
                 ) {
                     Button(onClick = {
                         try {
-                            localUriHandler.openUri("https://grapheneos.org/releases")
+                            localUriHandler.openUri("https://update.mosaicos.io/releases")
                         } catch (_: IllegalArgumentException) {
                             showSnackbarError(openUriIllegalArguementExceptionSnackbarError)
                         }

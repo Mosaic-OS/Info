@@ -1,0 +1,1 @@
+This is an independent project based on [GrapheneOS Info](https://github.com/GrapheneOS/Info). It is **not affiliated with, endorsed by, or maintained by the GrapheneOS team** - all credit for the original application goes to its authors.

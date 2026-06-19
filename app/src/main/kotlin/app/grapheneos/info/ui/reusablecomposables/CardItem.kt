@@ -77,7 +77,7 @@ fun LinkCardItem(
     ) {
         try {
             localUriHandler.openUri(link)
-        } catch (e: IllegalArgumentException) {
+        } catch (_: IllegalArgumentException) {
             showSnackbarError(
                 openUriIllegalArguementExceptionSnackbarError
             )

@@ -10,13 +10,7 @@ if (useKeystoreProperties) {
 
 plugins {
     id("com.android.application")
-    id("org.jetbrains.kotlin.plugin.compose") version "2.3.0"
-}
-
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
-    }
+    id("org.jetbrains.kotlin.plugin.compose") version "2.4.0"
 }
 
 android {
@@ -38,10 +32,10 @@ android {
     ndkVersion = "29.0.14206865"
 
     defaultConfig {
-        applicationId = "app.grapheneos.info"
+        applicationId = "app.mosaicos.info"
         minSdk = 33
         targetSdk = 36
-        versionCode = 7
+        versionCode = 5
         versionName = versionCode.toString()
 
         vectorDrawables {
@@ -54,6 +48,12 @@ android {
         }
     }
 
+    java {
+        toolchain {
+            languageVersion.set(JavaLanguageVersion.of(17))
+        }
+    }
+
     buildFeatures {
         compose = true
         buildConfig = true
@@ -61,7 +61,7 @@ android {
 
     androidResources {
         generateLocaleConfig = true
-        localeFilters += listOf("en")
+        localeFilters += listOf("en", "hu")
     }
 
     buildTypes {
@@ -72,6 +72,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("debug")
             if (useKeystoreProperties) {
                 signingConfig = signingConfigs.getByName("release")
             }
@@ -91,15 +92,15 @@ android {
 }
 
 dependencies {
-    implementation("androidx.core:core-ktx:1.17.0")
-    implementation("androidx.activity:activity-compose:1.10.1")
-    implementation("androidx.navigation:navigation-compose:2.9.3")
-    implementation("androidx.datastore:datastore-preferences:1.1.7")
-    val lifecycleVersion = "2.9.3"
+    implementation("androidx.core:core-ktx:1.18.0")
+    implementation("androidx.activity:activity-compose:1.13.0")
+    implementation("androidx.navigation:navigation-compose:2.9.8")
+    implementation("androidx.datastore:datastore-preferences:1.2.1")
+    val lifecycleVersion = "2.10.0"
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:$lifecycleVersion")
     implementation("androidx.lifecycle:lifecycle-process:$lifecycleVersion")
 
-    implementation(platform("androidx.compose:compose-bom:2025.08.01"))
+    implementation(platform("androidx.compose:compose-bom:2026.05.01"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-text")
     implementation("androidx.compose.ui:ui-graphics")

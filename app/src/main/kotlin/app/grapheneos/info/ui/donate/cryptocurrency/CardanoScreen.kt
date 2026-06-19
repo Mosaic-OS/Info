@@ -45,7 +45,7 @@ fun CardanoScreen(
         item {
             SelectionContainer {
                 Text(
-                    AnnotatedString.Companion.fromHtml(stringResource(R.string.cardano_handle_notice))
+                    AnnotatedString.fromHtml(stringResource(R.string.cardano_handle_notice))
                 )
             }
         }

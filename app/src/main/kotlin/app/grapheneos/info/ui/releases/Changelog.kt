@@ -2,6 +2,8 @@ package app.grapheneos.info.ui.releases
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.ElevatedCard
@@ -10,7 +12,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.semantics.heading
@@ -21,383 +25,310 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.grapheneos.info.ui.reusablecomposables.ClickableText
-import org.w3c.dom.Document
 import org.w3c.dom.Node
 import org.xml.sax.InputSource
 import java.io.StringReader
 import javax.xml.parsers.DocumentBuilderFactory
 
+// Single XML parser factory reused for every changelog entry, hardened against XXE / entity-expansion
+// DoS in remote feed content.
+private val changelogDocumentBuilderFactory: DocumentBuilderFactory =
+    DocumentBuilderFactory.newInstance().apply {
+        isNamespaceAware = true
+        runCatching { setFeature("http://apache.org/xml/features/disallow-doctype-decl", true) }
+        runCatching { setFeature("http://xml.org/sax/features/external-general-entities", false) }
+        runCatching { setFeature("http://xml.org/sax/features/external-parameter-entities", false) }
+        runCatching { isExpandEntityReferences = false }
+        runCatching { isXIncludeAware = false }
+    }
+
+private val whitespaceRegex = Regex("\\s+")
+
+// Resolve a feed href to a safe URL
+// Site-relative ("/...") and anchor ("#...") links map to
+// mosaicos.io; everything else must already be https. Non-https/unknown schemes return null so the
+// text is rendered without a launchable link
+private fun sanitizeFeedUrl(href: String?): String? {
+    if (href == null) return null
+    val home = "https://mosaicos.io"
+    val url = when {
+        href.startsWith('/') -> "$home$href"
+        href.startsWith('#') -> "$home/releases$href"
+        else -> href
+    }
+    return if (url.startsWith("https://", ignoreCase = true)) url else null
+}
+
+// Render model.
+// The entry XML is parsed into a flat list of these blocks in plain (non-composable) code inside
+// remember(...), with every AnnotatedString (text, links, bold/italic spans, "URL" annotations) fully
+// precomputed. The composables below only render the finished model. Building AnnotatedStrings as a
+// side effect of @Composable traversal was non-deterministic when an item was composed during the
+// initial auto-scroll, which could leave headings blank; precomputing removes that entirely.
+
+private sealed interface ChangelogBlock {
+    val text: AnnotatedString
+
+    data class Title(override val text: AnnotatedString) : ChangelogBlock
+    data class Paragraph(override val text: AnnotatedString, val likelyHeading: Boolean) : ChangelogBlock
+    data class Heading(override val text: AnnotatedString, val level: Int, val likelyHeading: Boolean) : ChangelogBlock
+    data class ListEntry(override val text: AnnotatedString, val marker: String, val depth: Int) : ChangelogBlock
+}
+
+private fun normalizedNodeName(n: Node?): String =
+    (n?.localName ?: n?.nodeName ?: "").lowercase()
+
+private fun isLikelyHeading(text: AnnotatedString): Boolean =
+    text.text == "Tags:" || text.text.startsWith("Changes since the")
+
+// Parse one entry into its render model, or null if the (remote, possibly hostile) XML can't be parsed.
+private fun parseChangelog(entry: String, linkColor: Color): List<ChangelogBlock>? = runCatching {
+    val document = changelogDocumentBuilderFactory.newDocumentBuilder()
+        .parse(InputSource(StringReader("<entry>$entry</entry>")))
+        .also { it.documentElement.normalize() }
+    val blocks = mutableListOf<ChangelogBlock>()
+    collectBlocks(document.documentElement, linkColor, blocks)
+    blocks
+}.getOrNull()
+
+private fun collectBlocks(node: Node, linkColor: Color, out: MutableList<ChangelogBlock>) {
+    val children = node.childNodes
+    for (i in 0 until children.length) {
+        val child = children.item(i)
+        if (child.nodeType != Node.ELEMENT_NODE) continue
+
+        when (val name = normalizedNodeName(child)) {
+            "title" -> out += ChangelogBlock.Title(buildBlockText(child, linkColor))
+
+            "p" -> {
+                val text = buildBlockText(child, linkColor)
+                out += ChangelogBlock.Paragraph(text, isLikelyHeading(text))
+            }
+
+            "h1", "h2", "h3", "h4", "h5", "h6" -> {
+                val text = buildBlockText(child, linkColor)
+                out += ChangelogBlock.Heading(text, name.substring(1).toInt(), isLikelyHeading(text))
+            }
+
+            "li" -> {
+                out += ChangelogBlock.ListEntry(
+                    text = buildListItemText(child, linkColor),
+                    marker = listMarker(child),
+                    depth = listDepth(child),
+                )
+                // Nested lists render as subsequent (deeper) blocks, after the <li> itself.
+                val liChildren = child.childNodes
+                for (j in 0 until liChildren.length) {
+                    val lc = liChildren.item(j)
+                    if (lc.nodeType == Node.ELEMENT_NODE) {
+                        val n = normalizedNodeName(lc)
+                        if (n == "ul" || n == "ol") collectBlocks(lc, linkColor, out)
+                    }
+                }
+            }
+
+            else -> collectBlocks(child, linkColor, out)
+        }
+    }
+}
+
+// Inline text of a block element (title / p / hN): its full descendant content with inline styling.
+private fun buildBlockText(node: Node, linkColor: Color): AnnotatedString {
+    val builder = AnnotatedString.Builder()
+    builder.appendInlineChildren(node, linkColor)
+    return builder.toAnnotatedString()
+}
+
+// Inline text of a list item: direct text is trimmed, nested <ul>/<ol> are excluded (rendered as their
+// own blocks), everything else is appended inline.
+private fun buildListItemText(li: Node, linkColor: Color): AnnotatedString {
+    val builder = AnnotatedString.Builder()
+    val children = li.childNodes
+    for (j in 0 until children.length) {
+        val c = children.item(j)
+        when (c.nodeType) {
+            Node.ELEMENT_NODE -> {
+                val name = normalizedNodeName(c)
+                if (name != "ul" && name != "ol") builder.appendInlineNode(c, linkColor)
+            }
+
+            Node.TEXT_NODE -> {
+                val s = (c.textContent ?: "").replace(whitespaceRegex, " ").trim()
+                if (s.isNotBlank()) builder.append(s)
+            }
+        }
+    }
+    return builder.toAnnotatedString()
+}
+
+private fun AnnotatedString.Builder.appendInlineChildren(node: Node, linkColor: Color) {
+    val children = node.childNodes
+    for (i in 0 until children.length) {
+        val child = children.item(i)
+        when (child.nodeType) {
+            Node.ELEMENT_NODE -> appendInlineNode(child, linkColor)
+
+            Node.TEXT_NODE -> {
+                val s = (child.textContent ?: "").replace(whitespaceRegex, " ")
+                if (s.isNotBlank()) append(s)
+            }
+        }
+    }
+}
+
+// Append an inline element's content, applying its own link (href) / bold / italic styling.
+private fun AnnotatedString.Builder.appendInlineNode(node: Node, linkColor: Color) {
+    val name = normalizedNodeName(node)
+    val isBold = name == "b" || name == "strong"
+    val isItalic = name == "i" || name == "em"
+
+    val startIndex = length
+
+    var pushedLink = false
+    val attributes = node.attributes
+    if (attributes != null) {
+        for (a in 0 until attributes.length) {
+            val attribute = attributes.item(a)
+            if (attribute.nodeName == "href") {
+                val url = sanitizeFeedUrl(attribute.nodeValue)
+                if (url != null) {
+                    pushLink(LinkAnnotation.Url(url))
+                    pushStringAnnotation("URL", url)
+                    pushStyle(SpanStyle(color = linkColor, fontWeight = FontWeight.Bold))
+                    pushedLink = true
+                }
+            }
+        }
+    }
+
+    appendInlineChildren(node, linkColor)
+
+    val endIndex = length
+    if (isBold && endIndex > startIndex) addStyle(SpanStyle(fontWeight = FontWeight.Bold), startIndex, endIndex)
+    if (isItalic && endIndex > startIndex) addStyle(SpanStyle(fontStyle = FontStyle.Italic), startIndex, endIndex)
+    if (pushedLink) {
+        pop()
+        pop()
+        pop()
+    }
+}
+
+private fun listDepth(li: Node): Int {
+    var depth = 0
+    var p: Node? = li.parentNode
+    while (p != null) {
+        val name = normalizedNodeName(p)
+        if (name == "ul" || name == "ol") depth++
+        p = p.parentNode
+    }
+    return depth
+}
+
+private fun listMarker(li: Node): String {
+    val parent = li.parentNode
+    return if (normalizedNodeName(parent) == "ol") {
+        var idx = 1
+        var s = parent.firstChild
+        while (s != null) {
+            if (s == li) break
+            if (s.nodeType == Node.ELEMENT_NODE && normalizedNodeName(s) == "li") idx++
+            s = s.nextSibling
+        }
+        "$idx."
+    } else {
+        "•"
+    }
+}
+
+private fun headingStyle(level: Int, base: TextStyle): TextStyle = when (level) {
+    1 -> base.copy(fontSize = 32.sp, fontWeight = FontWeight.Bold)
+    2 -> base.copy(fontSize = 24.sp, fontWeight = FontWeight.Bold)
+    3 -> base.copy(fontSize = 18.72.sp, fontWeight = FontWeight.Bold)
+    4 -> base.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold)
+    5 -> base.copy(fontSize = 13.28.sp, fontWeight = FontWeight.Bold)
+    6 -> base.copy(fontSize = 10.72.sp, fontWeight = FontWeight.Bold)
+    else -> base
+}
+
 @Composable
 fun Changelog(modifier: Modifier = Modifier, entry: String) {
     val localUriHandler = LocalUriHandler.current
+    val linkColor = MaterialTheme.colorScheme.primary
+    val baseStyle = LocalTextStyle.current
+
+    // Parse + build the render model once per entry (and per theme link colour), off the recomposition
+    // path. Never crashes composition on malformed/hostile feed content.
+    val blocks = remember(entry, linkColor) { parseChangelog(entry, linkColor) }
 
     SelectionContainer {
         ElevatedCard(modifier) {
             Column(Modifier.padding(16.dp)) {
-                val factory = DocumentBuilderFactory.newInstance()
-                val builder = factory.newDocumentBuilder()
+                if (blocks == null) {
+                    Text(text = entry)
+                } else {
+                    blocks.forEach { block ->
+                        ChangelogBlockView(block, baseStyle, localUriHandler)
+                    }
+                }
+            }
+        }
+    }
+}
 
-                val document: Document = builder.parse(InputSource(StringReader("<entry>$entry</entry>")))
+@Composable
+private fun ChangelogBlockView(
+    block: ChangelogBlock,
+    baseStyle: TextStyle,
+    localUriHandler: UriHandler,
+) {
+    val onClick: (Int) -> Unit = { offset ->
+        block.text.getStringAnnotations("URL", offset, offset).firstOrNull()?.let { annotation ->
+            localUriHandler.openUri(annotation.item)
+        }
+    }
 
-                document.documentElement.normalize()
+    when (block) {
+        is ChangelogBlock.Title -> ClickableText(
+            text = block.text,
+            modifier = Modifier
+                .semantics { heading() }
+                .padding(vertical = 12.dp),
+            onClick = onClick,
+            style = typography.titleLarge,
+        )
 
-                NodeToComposable(
-                    node = document.documentElement,
-                    modifier = Modifier,
-                    style = LocalTextStyle.current,
-                    builder = AnnotatedString.Builder(),
-                    localUriHandler = localUriHandler
+        is ChangelogBlock.Paragraph -> ClickableText(
+            text = block.text,
+            modifier = Modifier.padding(vertical = 12.dp),
+            onClick = onClick,
+            style = if (block.likelyHeading) typography.titleMedium else baseStyle,
+        )
+
+        is ChangelogBlock.Heading -> ClickableText(
+            text = block.text,
+            modifier = Modifier.padding(vertical = 12.dp),
+            onClick = onClick,
+            style = if (block.likelyHeading) typography.titleMedium else headingStyle(block.level, baseStyle),
+        )
+
+        is ChangelogBlock.ListEntry -> {
+            val leftPadding = if (block.depth > 1) ((block.depth - 1) * 16).dp else 0.dp
+            Row(modifier = Modifier.padding(start = leftPadding, top = 4.dp, bottom = 4.dp)) {
+                Text(
+                    block.marker,
+                    modifier = Modifier.padding(end = 8.dp),
+                    fontSize = 14.sp
+                )
+
+                ClickableText(
+                    text = block.text,
+                    onClick = onClick,
                 )
             }
-        }
-    }
-}
-
-@Composable
-private fun NodeToComposable(
-    node: Node,
-    modifier: Modifier,
-    style: TextStyle,
-    builder: AnnotatedString.Builder,
-    localUriHandler: UriHandler
-) {
-    val attributes = node.attributes
-
-    // Push annotations and modify modifier and/or style
-    for (a in 0 until attributes.length) {
-        val attribute = attributes.item(a)
-
-        when (attribute.nodeName) {
-            "href" -> {
-                val hrefValue = attribute.nodeValue
-                val home = "https://grapheneos.org"
-                val url = if (hrefValue.startsWith('/')) {
-                    "$home$hrefValue"
-                } else if (hrefValue.startsWith('#')) {
-                    "$home/releases$hrefValue"
-                } else {
-                    hrefValue
-                }
-                builder.apply {
-                    pushLink(LinkAnnotation.Url(url))
-                    pushStringAnnotation("URL", url)
-                    pushStyle(SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold))
-                }
-            }
-
-            "aria-label" -> {
-                // Only VerbatimTtsAnnotation is available so we can't use the text contained for TTS
-            }
-
-            else -> {
-            }
-        }
-    }
-
-    ParseChildren(node, modifier, style, builder, localUriHandler)
-
-    // Pop annotations, modifier and style don't carry over so no need to do anything for those
-    for (a in 0 until attributes.length) {
-        val attribute = attributes.item(a)
-
-        when (attribute.nodeName) {
-            "href" -> {
-                builder.apply {
-                    pop()
-                    pop()
-                    pop()
-                }
-            }
-
-            "aria-label" -> {
-            }
-
-            else -> {
-            }
-        }
-    }
-}
-
-@Composable
-private fun ParseChildren(
-    node: Node,
-    modifier: Modifier,
-    style: TextStyle,
-    builder: AnnotatedString.Builder,
-    localUriHandler: UriHandler
-) {
-    val children = node.childNodes
-
-    for (i in 0 until children.length) {
-        val child = children.item(i)
-
-        when (child.nodeType) {
-            Node.ELEMENT_NODE -> {
-                when (child.nodeName) {
-                    "title" -> {
-                        val annotatedStringBuilder = AnnotatedString.Builder()
-
-                        NodeToComposable(
-                            child,
-                            modifier,
-                            style,
-                            annotatedStringBuilder,
-                            localUriHandler
-                        )
-
-                        val annotatedString = annotatedStringBuilder.toAnnotatedString()
-
-                        ClickableText(
-                            text = annotatedString,
-                            modifier = modifier.semantics { heading() },
-                            onClick = { offset ->
-                                annotatedString
-                                    .getStringAnnotations("URL", offset, offset).firstOrNull()
-                                    ?.let { annotation ->
-                                        localUriHandler.openUri(annotation.item)
-                                    }
-                            },
-                            style = typography.titleLarge,
-                        )
-                    }
-
-                    "content" -> NodeToComposable(
-                        child,
-                        modifier,
-                        style,
-                        AnnotatedString.Builder(),
-                        localUriHandler
-                    )
-
-                    "div" -> NodeToComposable(
-                        child,
-                        modifier,
-                        style,
-                        AnnotatedString.Builder(),
-                        localUriHandler
-                    )
-
-                    "p" -> {
-                        val annotatedStringBuilder = AnnotatedString.Builder()
-
-                        NodeToComposable(
-                            child,
-                            modifier,
-                            style,
-                            annotatedStringBuilder,
-                            localUriHandler,
-                        )
-
-                        val annotatedString = annotatedStringBuilder.toAnnotatedString()
-
-                        val likelyHeading =
-                            (annotatedString.text == "Tags:") || (annotatedString.startsWith("Changes since the"))
-
-                        ClickableText(
-                            text = annotatedString,
-                            onClick = { offset ->
-                                annotatedString
-                                    .getStringAnnotations("URL", offset, offset).firstOrNull()
-                                    ?.let { annotation ->
-                                        localUriHandler.openUri(annotation.item)
-                                    }
-                            },
-                            modifier = if (likelyHeading) {
-                                modifier.padding(top = 16.dp, bottom = 12.dp)
-                            } else {
-                                modifier.padding(top = 24.dp)
-                            },
-                            style = if (likelyHeading) {
-                                typography.titleMedium
-                            } else {
-                                style
-                            },
-                        )
-                    }
-
-                    "a" -> {
-                        NodeToComposable(
-                            child,
-                            modifier,
-                            style,
-                            builder,
-                            localUriHandler
-                        )
-                    }
-
-                    "ul" -> {
-                        NodeToComposable(
-                            child,
-                            modifier,
-                            style,
-                            AnnotatedString.Builder(),
-                            localUriHandler
-                        )
-                    }
-
-                    "li" -> {
-                        val annotatedStringBuilder = AnnotatedString.Builder()
-
-                        NodeToComposable(
-                            child,
-                            modifier,
-                            style,
-                            annotatedStringBuilder,
-                            localUriHandler
-                        )
-
-                        val annotatedString = annotatedStringBuilder.toAnnotatedString()
-
-                        Row(modifier = Modifier.padding(vertical = 2.dp)) {
-                            Text(
-                                when (child.parentNode.nodeName) {
-                                    "ul" -> "  •  "
-                                    "ol" -> "  $i  "
-                                    else -> ""
-                                }
-                            )
-
-                            ClickableText(
-                                text = annotatedString,
-                                onClick = { offset ->
-                                    annotatedString
-                                        .getStringAnnotations("URL", offset, offset).firstOrNull()
-                                        ?.let { annotation ->
-                                            localUriHandler.openUri(annotation.item)
-                                        }
-                                }
-                            )
-                        }
-                    }
-
-                    "b", "strong" -> {
-                        builder.withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                            NodeToComposable(
-                                child,
-                                modifier,
-                                style.copy(fontWeight = FontWeight.Bold),
-                                builder,
-                                localUriHandler,
-                            )
-                        }
-                    }
-
-                    "i", "em" -> {
-                        builder.withStyle(SpanStyle(fontStyle = FontStyle.Italic)) {
-                            NodeToComposable(
-                                child,
-                                modifier,
-                                style.copy(fontStyle = FontStyle.Italic),
-                                builder,
-                                localUriHandler
-                            )
-                        }
-                    }
-
-                    "span" -> {
-                        NodeToComposable(
-                            child,
-                            modifier,
-                            style,
-                            builder,
-                            localUriHandler
-                        )
-                    }
-
-                    "h1", "h2", "h3", "h4", "h5", "h6" -> {
-                        val annotatedStringBuilder = AnnotatedString.Builder()
-
-                        NodeToComposable(
-                            child,
-                            modifier,
-                            style,
-                            annotatedStringBuilder,
-                            localUriHandler,
-                        )
-
-                        val annotatedString = annotatedStringBuilder.toAnnotatedString()
-
-                        val likelyHeading =
-                            (annotatedString.text == "Tags:") || (annotatedString.startsWith("Changes since the"))
-
-                        ClickableText(
-                            text = annotatedString,
-                            onClick = { offset ->
-                                annotatedString
-                                    .getStringAnnotations("URL", offset, offset).firstOrNull()
-                                    ?.let { annotation ->
-                                        localUriHandler.openUri(annotation.item)
-                                    }
-                            },
-                            modifier = if (likelyHeading) {
-                                modifier.padding(top = 16.dp, bottom = 12.dp)
-                            } else {
-                                modifier.padding(vertical = 16.dp)
-                            },
-                            style = if (likelyHeading) {
-                                typography.titleMedium
-                            } else {
-                                when (child.nodeName) {
-                                    "h1" -> style.copy(
-                                        fontSize = 32.sp,
-                                        fontWeight = FontWeight.Bold,
-                                    )
-
-                                    "h2" -> style.copy(
-                                        fontSize = 24.sp,
-                                        fontWeight = FontWeight.Bold,
-                                    )
-
-                                    "h3" -> style.copy(
-                                        fontSize = 18.72.sp,
-                                        fontWeight = FontWeight.Bold,
-                                    )
-
-                                    "h4" -> style.copy(
-                                        fontSize = 16.sp,
-                                        fontWeight = FontWeight.Bold,
-                                    )
-
-                                    "h5" -> style.copy(
-                                        fontSize = 13.28.sp,
-                                        fontWeight = FontWeight.Bold,
-                                    )
-
-                                    "h6" -> style.copy(
-                                        fontSize = 10.72.sp,
-                                        fontWeight = FontWeight.Bold,
-                                    )
-
-                                    else -> style
-                                }
-                            },
-                        )
-                    }
-
-                    else -> {
-                        NodeToComposable(
-                            child,
-                            modifier,
-                            style,
-                            builder,
-                            localUriHandler
-                        )
-                    }
-                }
-            }
-
-            Node.TEXT_NODE -> {
-                val textContent = child.textContent
-                if (!textContent.isNullOrEmpty()) {
-                    builder.apply {
-                        append(textContent)
-                    }
-                }
-            }
+            Spacer(modifier = Modifier.height(6.dp))
         }
     }
 }
