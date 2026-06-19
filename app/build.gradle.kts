@@ -35,7 +35,7 @@ android {
         applicationId = "app.mosaicos.info"
         minSdk = 33
         targetSdk = 36
-        versionCode = 5
+        versionCode = 6
         versionName = versionCode.toString()
 
         vectorDrawables {
