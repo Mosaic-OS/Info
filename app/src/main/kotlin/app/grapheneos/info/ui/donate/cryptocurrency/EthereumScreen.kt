@@ -8,7 +8,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.Wallpapers
 import androidx.compose.ui.unit.dp
@@ -31,18 +30,12 @@ fun EthereumScreen(
         }
         item {
             AddressInfoItem(
-                title = "Ethereum",
+                title = stringResource(R.string.ethereum),
                 qrCodePainterResourceId = R.drawable.donate_ethereum_qr_code,
                 qrCodeContentDescription = stringResource(R.string.ethereum_qr_code_description),
-                addressUrl = "ethereum:0xC822A62E5Ab443E0001f30cEB9B2336D0524fC61",
-                address = "0xC822A62E5Ab443E0001f30cEB9B2336D0524fC61",
+                addressUrl = "ethereum:0x44efF65cAAd5c3395B112e9A8524aA3a2171b28f",
+                address = "0x44efF65cAAd5c3395B112e9A8524aA3a2171b28f",
                 showSnackbarError = showSnackbarError
-            )
-        }
-        item {
-            Text(
-                stringResource(R.string.etherium_token_donation_notice),
-                fontWeight = FontWeight.Bold
             )
         }
     }

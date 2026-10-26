@@ -72,18 +72,11 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import app.grapheneos.info.preferences.PreferencesViewModel
 import app.grapheneos.info.ui.community.CommunityScreen
+import app.grapheneos.info.ui.donate.BuyMeACoffeeScreen
 import app.grapheneos.info.ui.donate.DonateStartScreen
-import app.grapheneos.info.ui.donate.GithubSponsorsScreen
-import app.grapheneos.info.ui.donate.PaypalScreen
-import app.grapheneos.info.ui.donate.WiseScreen
-import app.grapheneos.info.ui.donate.banktransfers.BankTransfersScreen
-import app.grapheneos.info.ui.donate.cryptocurrency.BitcoinScreen
-import app.grapheneos.info.ui.donate.cryptocurrency.CardanoScreen
 import app.grapheneos.info.ui.donate.cryptocurrency.DonateCryptoCurrencyStartScreen
 import app.grapheneos.info.ui.donate.cryptocurrency.EthereumScreen
-import app.grapheneos.info.ui.donate.cryptocurrency.LitecoinScreen
 import app.grapheneos.info.ui.donate.cryptocurrency.MoneroScreen
-import app.grapheneos.info.ui.donate.cryptocurrency.ZcashScreen
 import app.grapheneos.info.ui.releases.ReleasesScreen
 import app.grapheneos.info.ui.releases.ReleasesViewModel
 import kotlinx.coroutines.Dispatchers
@@ -95,19 +88,11 @@ enum class InfoAppScreens(@StringRes val title: Int) {
     Community(title = R.string.community),
     Donate(title = R.string.donate),
     DonateStart(title = R.string.donate),
-    DonateGithubSponsors(title = R.string.github_sponsors),
     DonateCryptocurrencies(title = R.string.cryptocurrencies),
     DonateCryptocurrenciesStart(title = R.string.cryptocurrencies),
-    DonateCryptocurrenciesBitcoin(title = R.string.bitcoin),
-    DonateCryptocurrenciesMonero(title = R.string.monero),
-    DonateCryptocurrenciesZcash(title = R.string.zcash),
     DonateCryptocurrenciesEthereum(title = R.string.ethereum),
-    DonateCryptocurrenciesCardano(title = R.string.cardano),
-    DonateCryptocurrenciesLitecoin(title = R.string.litecoin),
-    DonatePaypal(title = R.string.paypal),
-
-    DonateWise(title = R.string.wise),
-    DonateBankTransfers(title = R.string.bank_transfers)
+    DonateCryptocurrenciesMonero(title = R.string.monero),
+    DonateBuyMeACoffee(title = R.string.buy_me_a_coffee)
 }
 
 val navSuiteItemScreens = arrayOf(
@@ -349,29 +334,20 @@ fun InfoApp() {
                     ) {
                         DonateStartScreen(
                             modifier = Modifier.consumeWindowInsets(innerPadding),
-                            onNavigateToGithubSponsorsScreen = {
-                                navController.navigate(InfoAppScreens.DonateGithubSponsors.name)
-                            },
                             onNavigateToCryptocurrenciesScreen = {
                                 navController.navigate(InfoAppScreens.DonateCryptocurrencies.name)
                             },
-                            onNavigateToPayPalScreen = {
-                                navController.navigate(InfoAppScreens.DonatePaypal.name)
-                            },
-                            onNavigateToWiseScreen = {
-                                navController.navigate(InfoAppScreens.DonateWise.name)
-                            },
-                            onNavigateToBankTransfersScreen = {
-                                navController.navigate(InfoAppScreens.DonateBankTransfers.name)
+                            onNavigateToBuyMeACoffeeScreen = {
+                                navController.navigate(InfoAppScreens.DonateBuyMeACoffee.name)
                             },
                             additionalContentPadding = innerPadding
                         )
                     }
                     composableWithDefaultSlideTransitions(
-                        route = InfoAppScreens.DonateGithubSponsors,
+                        route = InfoAppScreens.DonateBuyMeACoffee,
                         navigationSuiteType = navigationSuiteType,
                     ) {
-                        GithubSponsorsScreen(
+                        BuyMeACoffeeScreen(
                             modifier = Modifier.consumeWindowInsets(innerPadding),
                             showSnackbarError = {
                                 snackbarCoroutine.launch {
@@ -392,37 +368,11 @@ fun InfoApp() {
                         ) {
                             DonateCryptoCurrencyStartScreen(
                                 modifier = Modifier.consumeWindowInsets(innerPadding),
-                                onNavigateToBitcoinScreen = {
-                                    navController.navigate(InfoAppScreens.DonateCryptocurrenciesBitcoin.name)
-                                },
-                                onNavigateToMoneroScreen = {
-                                    navController.navigate(InfoAppScreens.DonateCryptocurrenciesMonero.name)
-                                },
-                                onNavigateToZcashScreen = {
-                                    navController.navigate(InfoAppScreens.DonateCryptocurrenciesZcash.name)
-                                },
                                 onNavigateToEthereumScreen = {
                                     navController.navigate(InfoAppScreens.DonateCryptocurrenciesEthereum.name)
                                 },
-                                onNavigateToCardanoScreen = {
-                                    navController.navigate(InfoAppScreens.DonateCryptocurrenciesCardano.name)
-                                },
-                                onNavigateToLitecoinScreen = {
-                                    navController.navigate(InfoAppScreens.DonateCryptocurrenciesLitecoin.name)
-                                },
-                                additionalContentPadding = innerPadding
-                            )
-                        }
-                        composableWithDefaultSlideTransitions(
-                            route = InfoAppScreens.DonateCryptocurrenciesBitcoin,
-                            navigationSuiteType = navigationSuiteType,
-                        ) {
-                            BitcoinScreen(
-                                modifier = Modifier.consumeWindowInsets(innerPadding),
-                                showSnackbarError = {
-                                    snackbarCoroutine.launch {
-                                        snackbarHostState.showSnackbar(it)
-                                    }
+                                onNavigateToMoneroScreen = {
+                                    navController.navigate(InfoAppScreens.DonateCryptocurrenciesMonero.name)
                                 },
                                 additionalContentPadding = innerPadding
                             )
@@ -432,20 +382,6 @@ fun InfoApp() {
                             navigationSuiteType = navigationSuiteType,
                         ) {
                             MoneroScreen(
-                                modifier = Modifier.consumeWindowInsets(innerPadding),
-                                showSnackbarError = {
-                                    snackbarCoroutine.launch {
-                                        snackbarHostState.showSnackbar(it)
-                                    }
-                                },
-                                additionalContentPadding = innerPadding
-                            )
-                        }
-                        composableWithDefaultSlideTransitions(
-                            route = InfoAppScreens.DonateCryptocurrenciesZcash,
-                            navigationSuiteType = navigationSuiteType,
-                        ) {
-                            ZcashScreen(
                                 modifier = Modifier.consumeWindowInsets(innerPadding),
                                 showSnackbarError = {
                                     snackbarCoroutine.launch {
@@ -469,71 +405,6 @@ fun InfoApp() {
                                 additionalContentPadding = innerPadding
                             )
                         }
-                        composableWithDefaultSlideTransitions(
-                            route = InfoAppScreens.DonateCryptocurrenciesCardano,
-                            navigationSuiteType = navigationSuiteType,
-                        ) {
-                            CardanoScreen(
-                                modifier = Modifier.consumeWindowInsets(innerPadding),
-                                showSnackbarError = {
-                                    snackbarCoroutine.launch {
-                                        snackbarHostState.showSnackbar(it)
-                                    }
-                                },
-                                additionalContentPadding = innerPadding
-                            )
-                        }
-                        composableWithDefaultSlideTransitions(
-                            route = InfoAppScreens.DonateCryptocurrenciesLitecoin,
-                            navigationSuiteType = navigationSuiteType,
-                        ) {
-                            LitecoinScreen(
-                                modifier = Modifier.consumeWindowInsets(innerPadding),
-                                showSnackbarError = {
-                                    snackbarCoroutine.launch {
-                                        snackbarHostState.showSnackbar(it)
-                                    }
-                                },
-                                additionalContentPadding = innerPadding
-                            )
-                        }
-                    }
-                    composableWithDefaultSlideTransitions(
-                        route = InfoAppScreens.DonatePaypal,
-                        navigationSuiteType = navigationSuiteType,
-                    ) {
-                        PaypalScreen(
-                            modifier = Modifier.consumeWindowInsets(innerPadding),
-                            showSnackbarError = {
-                                snackbarCoroutine.launch {
-                                    snackbarHostState.showSnackbar(it)
-                                }
-                            },
-                            additionalContentPadding = innerPadding
-                        )
-                    }
-                    composableWithDefaultSlideTransitions(
-                        route = InfoAppScreens.DonateWise,
-                        navigationSuiteType = navigationSuiteType,
-                    ) {
-                        WiseScreen(
-                            modifier = Modifier.consumeWindowInsets(innerPadding),
-                            showSnackbarError = {
-                                snackbarCoroutine.launch {
-                                    snackbarHostState.showSnackbar(it)
-                                }
-                            },
-                            additionalContentPadding = innerPadding
-                        )
-                    }
-                    composableWithDefaultSlideTransitions(
-                        route = InfoAppScreens.DonateBankTransfers,
-                        navigationSuiteType = navigationSuiteType,
-                    ) {
-                        BankTransfersScreen(
-                            modifier = Modifier.consumeWindowInsets(innerPadding),
-                            additionalContentPadding = innerPadding
-                        )
                     }
                 }
             }

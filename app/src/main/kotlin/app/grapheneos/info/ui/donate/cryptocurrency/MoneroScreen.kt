@@ -33,8 +33,8 @@ fun MoneroScreen(
                 title = "Monero",
                 qrCodePainterResourceId = R.drawable.donate_monero_qr_code,
                 qrCodeContentDescription = stringResource(R.string.monero_qr_code_description),
-                addressUrl = "monero:862CebHaBpFPgYoNC6zw4U8rsXrDjD8s5LMJNS7yVCRHMUKr9dDi7adMSLUMjkDYJ85xahQTCJHHyK5RCvvRJu9x7iSzN9D?recipient_name=GrapheneOS%20Foundation&tx_description=Donation%20to%20GrapheneOS%20Foundation",
-                address = "862CebHaBpFPgYoNC6zw4U8rsXrDjD8s5LMJNS7yVCRHMUKr9dDi7adMSLUMjkDYJ85xahQTCJHHyK5RCvvRJu9x7iSzN9D",
+                addressUrl = "monero:87J2LuewKtRh78VqDdn3DoUS7rr5hqpMv1Fukf4qgR7a6DoxA61JC2Ad5pg8zyc2wVB6SU9a1TMmDB35EYg7D6HV92JPSTB?recipient_name=MosaicOS&tx_description=Donation%20to%20MosaicOS",
+                address = "87J2LuewKtRh78VqDdn3DoUS7rr5hqpMv1Fukf4qgR7a6DoxA61JC2Ad5pg8zyc2wVB6SU9a1TMmDB35EYg7D6HV92JPSTB",
                 showSnackbarError = showSnackbarError
             )
         }

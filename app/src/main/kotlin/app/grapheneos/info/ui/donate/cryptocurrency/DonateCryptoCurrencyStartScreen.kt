@@ -18,12 +18,8 @@ import app.grapheneos.info.ui.reusablecomposables.ScreenNavCardItem
 @Composable
 fun DonateCryptoCurrencyStartScreen(
     modifier: Modifier = Modifier,
-    onNavigateToBitcoinScreen: () -> Unit = {},
-    onNavigateToMoneroScreen: () -> Unit = {},
-    onNavigateToZcashScreen: () -> Unit = {},
     onNavigateToEthereumScreen: () -> Unit = {},
-    onNavigateToCardanoScreen: () -> Unit = {},
-    onNavigateToLitecoinScreen: () -> Unit = {},
+    onNavigateToMoneroScreen: () -> Unit = {},
     additionalContentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
     ScreenLazyColumn(
@@ -31,30 +27,6 @@ fun DonateCryptoCurrencyStartScreen(
             .fillMaxSize(),
         additionalContentPadding = additionalContentPadding
     ) {
-        item {
-            ScreenNavCardItem(
-                painter = painterResource(id = R.drawable.bitcoin),
-                title = stringResource(id = R.string.bitcoin)
-            ) {
-                onNavigateToBitcoinScreen()
-            }
-        }
-        item {
-            ScreenNavCardItem(
-                painter = painterResource(id = R.drawable.monero),
-                title = stringResource(id = R.string.monero)
-            ) {
-                onNavigateToMoneroScreen()
-            }
-        }
-        item {
-            ScreenNavCardItem(
-                painter = painterResource(id = R.drawable.zcash),
-                title = stringResource(id = R.string.zcash)
-            ) {
-                onNavigateToZcashScreen()
-            }
-        }
         item {
             ScreenNavCardItem(
                 painter = painterResource(id = R.drawable.ethereum),
@@ -65,18 +37,10 @@ fun DonateCryptoCurrencyStartScreen(
         }
         item {
             ScreenNavCardItem(
-                painter = painterResource(id = R.drawable.cardano),
-                title = stringResource(id = R.string.cardano)
+                painter = painterResource(id = R.drawable.monero),
+                title = stringResource(id = R.string.monero)
             ) {
-                onNavigateToCardanoScreen()
-            }
-        }
-        item {
-            ScreenNavCardItem(
-                painter = painterResource(id = R.drawable.litecoin),
-                title = stringResource(id = R.string.litecoin)
-            ) {
-                onNavigateToLitecoinScreen()
+                onNavigateToMoneroScreen()
             }
         }
     }
